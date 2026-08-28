@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import ChatPage from './pages/ChatPage';
+import AdminPage from './pages/AdminPage';
 import './App.css';
 
-function App() {
+function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState('features');
+  const navigate = useNavigate();
 
   // Handle navbar solid transition on scroll
   useEffect(() => {
@@ -18,15 +22,23 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Generate particles configuration dynamically
-  const particles = Array.from({ length: 25 }, (_, i) => {
-    const size = Math.random() * 5 + 3; // 3px to 8px
-    const x = Math.random() * 100; // % position
-    const y = Math.random() * 100; // % position
-    const delay = Math.random() * 8; // delay in seconds
-    const duration = Math.random() * 12 + 8; // duration in seconds
-    return { id: i, size, x, y, delay, duration };
-  });
+  // Generate particles configuration statically/deterministically
+  const particles = useMemo(() => {
+    // Pseudo-random generator based on index to keep render pure
+    const pseudoRandom = (seed) => {
+      const x = Math.sin(seed + 1) * 10000;
+      return x - Math.floor(x);
+    };
+
+    return Array.from({ length: 25 }, (_, i) => {
+      const size = pseudoRandom(i * 4 + 1) * 5 + 3; // 3px to 8px
+      const x = pseudoRandom(i * 4 + 2) * 100; // % position
+      const y = pseudoRandom(i * 4 + 3) * 100; // % position
+      const delay = pseudoRandom(i * 4 + 4) * 8; // delay in seconds
+      const duration = pseudoRandom(i * 4 + 5) * 12 + 8; // duration in seconds
+      return { id: i, size, x, y, delay, duration };
+    });
+  }, []);
 
   return (
     <div className="landing-container">
@@ -51,7 +63,7 @@ function App() {
           </nav>
 
           <div className="nav-actions">
-            <button className="btn-secondary-glow small-btn" onClick={() => alert('Accessing Application Platform...')}>
+            <button className="btn-secondary-glow small-btn" onClick={() => navigate('/login')}>
               Launch App
             </button>
           </div>
@@ -81,13 +93,13 @@ function App() {
           <div className="hero-actions animate-fade-in">
             <button 
               className="btn-primary-glow" 
-              onClick={() => alert('Welcome to CampusAI! Starting document QA interface...')}
+              onClick={() => navigate('/login')}
             >
               Get Started
             </button>
             <button 
               className="btn-secondary-glow" 
-              onClick={() => alert('Redirecting to Admin Document Management dashboard...')}
+              onClick={() => navigate('/admin')}
             >
               Admin Upload
             </button>
@@ -160,7 +172,7 @@ function App() {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 2 7 12 12 22 7 12 2" />
                 <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
+                <polyline points="2 12 17 22 12" />
               </svg>
             </div>
             <h3>Vector Search</h3>
@@ -193,6 +205,19 @@ function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
