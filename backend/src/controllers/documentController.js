@@ -1,41 +1,35 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendSuccess } from '../utils/apiResponse.js';
+import * as documentService from '../services/documentService.js';
 
 /**
  * GET /api/documents
- * Placeholder — returns a sample documents array.
+ * Retrieves all documents from Supabase.
  */
 export const listDocuments = asyncHandler(async (_req, res) => {
-  const documents = [
-    {
-      id: '1',
-      filename: 'syllabus-cs101.pdf',
-      originalName: 'CS 101 Syllabus.pdf',
-      size: 245760,
-      mimeType: 'application/pdf',
-      status: 'indexed',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      filename: 'lecture-notes-week1.pdf',
-      originalName: 'Lecture Notes — Week 1.pdf',
-      size: 512000,
-      mimeType: 'application/pdf',
-      status: 'indexed',
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  const rawDocs = await documentService.listDocuments();
+  
+  // Format to match frontend structure (snake_case from DB -> camelCase for UI)
+  const documents = rawDocs.map(doc => ({
+    id: doc.id,
+    filename: doc.filename,
+    originalName: doc.original_name,
+    size: doc.size,
+    mimeType: doc.mime_type,
+    status: doc.status,
+    createdAt: doc.created_at,
+  }));
 
   sendSuccess(res, { documents }, 'Documents retrieved');
 });
 
 /**
  * DELETE /api/documents/:id
- * Placeholder — acknowledges the deletion without touching a database.
+ * Deletes a document from Supabase (cascades to chunks).
  */
 export const deleteDocument = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  await documentService.deleteDocument(id);
 
   sendSuccess(res, {
     id,

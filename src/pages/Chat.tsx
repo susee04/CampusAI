@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import AIOrb from '@/components/ui/AIOrb';
+import { sendChatMessage } from '@/services/api';
 
 interface SourceCard {
   title: string;
@@ -129,7 +130,7 @@ export default function Chat() {
     }
   };
 
-  const sendMessage = (text?: string) => {
+  const sendMessage = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || isTyping) return;
 
@@ -142,19 +143,24 @@ export default function Chat() {
     const typingId = `a-${Date.now()}`;
     setMessages((prev) => [...prev, { id: typingId, role: 'assistant', content: '', typing: true }]);
 
-    // Simulate response
-    setTimeout(() => {
+    try {
+      const result = await sendChatMessage(content, activeId);
+      
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === typingId ? { ...m, typing: false, content: sampleResponse, sources: sampleSources } : m
+          m.id === typingId ? { 
+            ...m, 
+            typing: false, 
+            content: result.data.reply, 
+            sources: result.data.sources 
+          } : m
         )
       );
-      setIsTyping(false);
-
+      
       // Add to conversation list if new
       if (!activeId) {
         const newConv: Conversation = {
-          id: `conv-${Date.now()}`,
+          id: result.data.conversationId || `conv-${Date.now()}`,
           title: content.slice(0, 30) + (content.length > 30 ? '...' : ''),
           preview: content,
           timestamp: 'Just now',
@@ -162,7 +168,19 @@ export default function Chat() {
         setConversations((prev) => [newConv, ...prev]);
         setActiveId(newConv.id);
       }
-    }, 1800);
+    } catch (error) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === typingId ? { 
+            ...m, 
+            typing: false, 
+            content: "Sorry, I couldn't reach the server. Please check if the backend is running." 
+          } : m
+        )
+      );
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleSubmit = (e: FormEvent) => {

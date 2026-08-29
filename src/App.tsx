@@ -5,8 +5,16 @@ import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
 import Chat from '@/pages/Chat';
 import AdminUpload from '@/pages/AdminUpload';
+import { useEffect } from 'react';
+import { checkHealth } from '@/services/api';
 
 export default function App() {
+  useEffect(() => {
+    checkHealth()
+      .then((data) => console.log('Backend health:', data))
+      .catch((err) => console.error('Backend health check failed', err));
+  }, []);
+
   return (
     <BrowserRouter>
       <Background />

@@ -1,26 +1,28 @@
-/**
- * Supabase client — placeholder module.
- *
- * Will be wired to @supabase/supabase-js once Supabase is fully integrated.
- * For now, all functions return safe defaults so the rest of the app works
- * without valid Supabase credentials.
- */
+import { createClient } from '@supabase/supabase-js';
+import config from '../config/index.js';
+
+let clientInstance = null;
 
 export function getSupabaseClient() {
-  // TODO: create and return a real Supabase client
-  return null;
-}
-
-export function getServiceClient() {
-  // TODO: create and return a service-role Supabase client
-  return null;
+  if (!clientInstance && config.supabase.url && config.supabase.anonKey) {
+    clientInstance = createClient(config.supabase.url, config.supabase.anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return clientInstance;
 }
 
 export function isSupabaseConfigured() {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
+  return Boolean(config.supabase.url && config.supabase.anonKey);
 }
 
 export async function checkDatabaseConnection() {
-  // TODO: ping the database with a lightweight query
-  return false;
+  const supabase = getSupabaseClient();
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.from('documents').select('id').limit(1);
+    return !error;
+  } catch (err) {
+    return false;
+  }
 }

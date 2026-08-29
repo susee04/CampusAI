@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import GlassCard from '@/components/ui/GlassCard';
+import { uploadDocument as apiUploadDocument } from '@/services/api';
 
 type UploadStatus = 'uploading' | 'processing' | 'success' | 'error';
 
@@ -77,57 +78,59 @@ export default function AdminUpload() {
   const [filter, setFilter] = useState<'all' | 'success' | 'error'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const simulateUpload = (file: File) => {
+  const uploadFile = async (file: File) => {
     const id = `d-${Date.now()}-${Math.random()}`;
     const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    
+    // Add to UI as uploading
     const newDoc: DocItem = {
       id,
       name: file.name,
       size: `${sizeMB} MB`,
-      pages: Math.floor(Math.random() * 200) + 20,
+      pages: 0,
       status: 'uploading',
-      progress: 0,
+      progress: 30, // Show some initial progress
       uploadedAt: 'Just now',
     };
+    
     setDocs((prev) => [newDoc, ...prev]);
 
-    // Simulate upload progress
-    let progress = 0;
-    const uploadInterval = setInterval(() => {
-      progress += Math.random() * 15 + 5;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(uploadInterval);
-        setDocs((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, progress: 100, status: 'processing' } : d))
-        );
+    try {
+      // Perform actual upload
+      const result = await apiUploadDocument(file);
+      const serverDoc = result.data.document;
 
-        // Simulate processing
-        setTimeout(() => {
-          const success = Math.random() > 0.15;
-          setDocs((prev) =>
-            prev.map((d) =>
-              d.id === id
-                ? success
-                  ? { ...d, status: 'success' }
-                  : { ...d, status: 'error', error: 'Failed to parse PDF content' }
-                : d
-            )
-          );
-        }, 1500);
-      } else {
-        setDocs((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, progress: Math.min(progress, 100) } : d))
-        );
-      }
-    }, 200);
+      // Update success
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === id
+            ? { 
+                ...d, 
+                progress: 100, 
+                status: 'success', 
+                id: serverDoc.id, 
+                pages: serverDoc.pages || 1 
+              }
+            : d
+        )
+      );
+    } catch (err) {
+      // Update failure
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === id
+            ? { ...d, status: 'error', error: 'Failed to upload or parse PDF' }
+            : d
+        )
+      );
+    }
   };
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
     Array.from(files).forEach((file) => {
       if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-        simulateUpload(file);
+        uploadFile(file);
       }
     });
   };
