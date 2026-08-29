@@ -1,26 +1,44 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendSuccess } from '../utils/apiResponse.js';
-import * as documentService from '../services/documentService.js';
 
+/**
+ * GET /api/documents
+ * Placeholder — returns a sample documents array.
+ */
 export const listDocuments = asyncHandler(async (_req, res) => {
-  const documents = await documentService.listDocuments();
+  const documents = [
+    {
+      id: '1',
+      filename: 'syllabus-cs101.pdf',
+      originalName: 'CS 101 Syllabus.pdf',
+      size: 245760,
+      mimeType: 'application/pdf',
+      status: 'indexed',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      filename: 'lecture-notes-week1.pdf',
+      originalName: 'Lecture Notes — Week 1.pdf',
+      size: 512000,
+      mimeType: 'application/pdf',
+      status: 'indexed',
+      createdAt: new Date().toISOString(),
+    },
+  ];
+
   sendSuccess(res, { documents }, 'Documents retrieved');
 });
 
-export const getDocument = asyncHandler(async (req, res) => {
-  const document = await documentService.getDocument(req.params.id);
-  sendSuccess(res, { document }, 'Document retrieved');
-});
-
-export const uploadDocument = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    return sendSuccess(res, { document: null }, 'No file provided', 400);
-  }
-  const document = await documentService.saveDocument(req.file);
-  sendSuccess(res, { document }, 'Document uploaded', 201);
-});
-
+/**
+ * DELETE /api/documents/:id
+ * Placeholder — acknowledges the deletion without touching a database.
+ */
 export const deleteDocument = asyncHandler(async (req, res) => {
-  await documentService.deleteDocument(req.params.id);
-  sendSuccess(res, null, 'Document deleted');
+  const { id } = req.params;
+
+  sendSuccess(res, {
+    id,
+    deleted: true,
+  }, `Document ${id} deleted`);
 });

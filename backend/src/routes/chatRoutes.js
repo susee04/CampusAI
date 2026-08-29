@@ -1,9 +1,12 @@
 import { Router } from 'express';
-import { ask, getConversations } from '../controllers/chatController.js';
+import { chat } from '../controllers/chatController.js';
 
 const router = Router();
 
-router.post('/ask', ask);
-router.get('/conversations', getConversations);
+/**
+ * POST /api/chat
+ * Accepts a message and returns an AI response (placeholder for now).
+ */
+router.post('/', chat);
 
 export default router;

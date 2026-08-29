@@ -1,61 +1,26 @@
-import { createClient } from '@supabase/supabase-js';
-
 /**
- * Supabase client — reads SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY from the
- * environment. The publishable (anon) key is safe for server-side read access
- * through RLS policies. A service-role client is also created when available
- * for privileged operations.
+ * Supabase client — placeholder module.
+ *
+ * Will be wired to @supabase/supabase-js once Supabase is fully integrated.
+ * For now, all functions return safe defaults so the rest of the app works
+ * without valid Supabase credentials.
  */
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || '';
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-let anonClient = null;
-let serviceClient = null;
-
-function buildClients() {
-  if (!supabaseUrl || !supabasePublishableKey) return;
-
-  anonClient = createClient(supabaseUrl, supabasePublishableKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  if (supabaseServiceRoleKey) {
-    serviceClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-  }
-}
-
-buildClients();
-
 export function getSupabaseClient() {
-  if (!anonClient) buildClients();
-  return anonClient;
+  // TODO: create and return a real Supabase client
+  return null;
 }
 
 export function getServiceClient() {
-  if (!serviceClient) buildClients();
-  return serviceClient;
+  // TODO: create and return a service-role Supabase client
+  return null;
 }
 
 export function isSupabaseConfigured() {
-  return Boolean(supabaseUrl && supabasePublishableKey);
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
 }
 
-/**
- * Ping the database by running a lightweight query against the documents
- * table. Returns true if the connection is healthy.
- */
 export async function checkDatabaseConnection() {
-  const client = getSupabaseClient();
-  if (!client) return false;
-
-  const { error } = await client
-    .from('documents')
-    .select('id')
-    .limit(1);
-
-  return !error;
+  // TODO: ping the database with a lightweight query
+  return false;
 }

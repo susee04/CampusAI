@@ -1,20 +1,21 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendSuccess } from '../utils/apiResponse.js';
 import { validateBody } from '../utils/validate.js';
-import * as chatService from '../services/chatService.js';
 
-export const ask = asyncHandler(async (req, res) => {
-  if (!validateBody(req, res, ['question'])) return;
-  const { question, conversationId, history } = req.body;
-  const result = await chatService.askQuestion({
-    question,
-    conversationId,
-    history,
-  });
-  sendSuccess(res, result, 'Answer generated');
-});
+/**
+ * POST /api/chat
+ * Placeholder — returns a canned response until Gemini is integrated.
+ */
+export const chat = asyncHandler(async (req, res) => {
+  if (!validateBody(req, res, ['message'])) return;
 
-export const getConversations = asyncHandler(async (_req, res) => {
-  // TODO: fetch conversation history from Supabase once configured
-  sendSuccess(res, { conversations: [] }, 'Conversations retrieved');
+  const { message } = req.body;
+
+  // Placeholder response — will be replaced with Gemini AI integration
+  sendSuccess(res, {
+    reply: `This is a placeholder response. You asked: "${message}". Gemini AI integration is coming soon.`,
+    conversationId: `conv-${Date.now()}`,
+    sources: [],
+    model: 'placeholder',
+  }, 'Chat response generated');
 });
